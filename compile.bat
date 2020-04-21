@@ -1,9 +1,7 @@
-:: app name: RevisionZero
-:: Set this file for compiling the executable of the macro.
-:: So it can be added to the user custom theme in solidedge. 
-ipyc.exe /main:./revzero/__main__.py ^
-./revision_zero/Interop.SolidEdge.dll ^
+:: app name: revision_zero
+ipyc.exe /main:./revision_zero/__main__.py ^
 ./revision_zero/api.py ^
+./revision_zero/Interop.SolidEdge.dll ^
 /embed ^
 /out:revision_zero_macro_64x_0-0-0 ^
 /platform:x64 ^
