@@ -9,8 +9,9 @@ from api import Api
 def remove_symbols():
     try:
         session = Api()
-        print("Author: recs")
-        print("Last update: 2020-04-08")
+        print("Author: recs@premiertech.com")
+        print("Maintainer: Rechdi, Slimane")
+        print("Last update: 2020-04-23")
         session.check_valid_version("Solid Edge ST7", "Solid Edge 2019")
         draft = session.active_document()
         print("part: %s\n" % draft.name)
