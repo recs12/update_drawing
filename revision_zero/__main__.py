@@ -5,6 +5,13 @@ import sys
 
 from api import Api
 
+blocks_to_delete = [
+    "ID rev",
+    "ID de REV",
+    "Bloc revision",
+    "Bloc revision 1",
+    "Bloc revision - ENGLISH",
+]
 
 def remove_symbols():
     try:
@@ -18,20 +25,14 @@ def remove_symbols():
         assert draft.name.endswith(".dft"), (
             "This macro only works on .psm not %s" % draft.name[-4:]
         )
+        for symbol in draft.Blocks:
+            if symbol.name in blocks_to_delete:
+                print("[-] %s, \tdeleted" % symbol.name)
+                symbol.delete()
     except AssertionError as err:
         print(err.args)
     except Exception as ex:
         print(ex.args)
-    else:
-        for symbol in draft.Blocks:
-            if symbol.name in [
-                "ID rev",
-                "Bloc revision",
-                "Bloc revision 1",
-                "Bloc revision - ENGLISH",
-            ]:
-                symbol.delete()
-                print(" %s deleted" % symbol.name)
     finally:
         raw_input("\n(Press any key to exit ;)")
         sys.exit()
