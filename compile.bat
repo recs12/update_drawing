@@ -7,4 +7,4 @@ ipyc.exe /main:./revision_zero/__main__.py ^
 /platform:x64 ^
 /standalone ^
 /target:exe ^
-/win32icon:logo.ico 
+/win32icon:triangle.ico 

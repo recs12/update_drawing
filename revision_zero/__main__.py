@@ -13,6 +13,7 @@ blocks_to_delete = [
     "Bloc revision - ENGLISH",
 ]
 
+
 def remove_symbols():
     try:
         session = Api()
@@ -25,10 +26,17 @@ def remove_symbols():
         assert draft.name.endswith(".dft"), (
             "This macro only works on .psm not %s" % draft.name[-4:]
         )
+
+        for ball in draft.ActiveSheet.Balloons:
+            if ball.BalloonType == 7:  # type 7 filter the triangle balloons.
+                print("[-] %s, \tdeleted" % ball.name)
+                ball.delete()
+
         for symbol in draft.Blocks:
             if symbol.name in blocks_to_delete:
                 print("[-] %s, \tdeleted" % symbol.name)
                 symbol.delete()
+                
     except AssertionError as err:
         print(err.args)
     except Exception as ex:
