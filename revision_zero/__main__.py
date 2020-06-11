@@ -67,12 +67,18 @@ def revision_00(draft):
 
 
 def revision_01(draft):
-    for i in draft.Blocks:
-        print(i.Name)
-    print(dir(draft.Blocks))
     block_revision = r"J:\PTCR\_Solidedge\Draft_Symboles\Bloc revision - ENGLISH.dft"
+    active_sheet = draft.ActiveSheet
+    print(dir(active_sheet))
+    # background = active_sheet.Background
+    # print(background())
+    # active_sheet.DrawingViews
+    # revision.BringForward()
+    # for i in draft.Blocks:
+    #     print(i.Name)
+    # print(dir(draft.Blocks))
     # draft.Blocks.AddBlockByFile(block_revision)
-    draft.Blocks.Add(block_revision)
+    # draft.Blocks.Add(block_revision)
     # draft.ActiveSheet.BlockOccurrences.Add(block_revision)
 
 
