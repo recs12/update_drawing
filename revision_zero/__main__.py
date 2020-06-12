@@ -19,7 +19,7 @@ blocks_to_delete = [
 ]
 
 
-def remove_symbols():
+def revision():
     try:
         session = SRI.Marshal.GetActiveObject("SolidEdge.Application")
         print("Author: recs@premiertech.com")
@@ -33,11 +33,14 @@ def remove_symbols():
             "This macro only works on .psm not %s" % draft.Name[-4:]
         )
 
+        revision_doc = get_document_revision(draft)
+        print("Document Revision: %s" % revision_doc)
+
         rev = prompt_revision()
         if rev == "00":
-            revision_00(draft)
+            remove_blocks(draft)
         elif rev == "01":
-            revision_01(draft)
+            insert_blocks(draft)
         elif rev == "testing":
             revision_inspect(draft)
 
@@ -50,7 +53,15 @@ def remove_symbols():
         sys.exit()
 
 
-def revision_00(draft):
+def get_document_revision(draft):
+    """Revision of the draft
+    """
+    return draft.Properties.Item['ProjectInformation']['Revision'].Value
+
+
+def remove_blocks(draft):
+    """Remove the revision blocks and balloones
+    """
     for symbol in draft.Blocks:
         if symbol.Name in blocks_to_delete:
             print("[-] %s, \tdeleted" % symbol.Name)
@@ -66,38 +77,38 @@ def revision_00(draft):
         pass
 
 
-def revision_01(draft):
-    block_revision = r"J:\PTCR\_Solidedge\Draft_Symboles\Bloc revision - ENGLISH.dft"
-    active_sheet = draft.ActiveSheet
-    print(dir(active_sheet))
-    # background = active_sheet.Background
-    # print(background())
-    # active_sheet.DrawingViews
-    # revision.BringForward()
-    # for i in draft.Blocks:
-    #     print(i.Name)
-    # print(dir(draft.Blocks))
-    # draft.Blocks.AddBlockByFile(block_revision)
-    # draft.Blocks.Add(block_revision)
-    # draft.ActiveSheet.BlockOccurrences.Add(block_revision)
+def insert_blocks(draft):
+    block_revision = "J:\\PTCR\\_Solidedge\\Draft_Symboles\\Bloc revision - ENGLISH.dft"
+    block_triangle = "J:\\PTCR\\_Solidedge\\Draft_Symboles\\ID rev.dft"
 
+    Sheet1 = draft.Sheets[1]
+    Sheet1.Activate()
+    # insert a revision block
+    # insert a triangles
+    for _ in draft.Blocks:
+        print(_.Name)
+    blocks = draft.Blocks
+    blocks.AddBlockByFile(block_triangle, 0.25, 0.25)
 
-def revision_inspect(draft):
-    for i in draft.Blocks:
-        print(i.Name)
-        print(dir(i))
-    print(draft.Sheets["Sheet1"].Name)
-    print(draft.Sheets["Sheet1"])
-    block_revision = r"J:\PTCR\_Solidedge\Draft_Symboles\Bloc revision - ENGLISH.dft"
-    se_draft.BlockOccurrences.Add(block_revision, 0.2, 0.2)
+    for _ in Sheet1.BlockOccurrences:
+        print(_)
+    # Sheet1.BlockOccurrences.Add(block_revision, 0.00, 0.00)
+    draft.Blocks.AddBlockByFile(block_revision)
+    # *** code here ***
+
+    # access the revision block and modify the content
+    # block = Sheet1.BlockOccurrences.Item[1]
+    # for _ in block.BlockLabelOccurrences:
+    #     print(_.Name)
+    #     _.Value = "0"
 
 
 
 def prompt_revision():
     revision = raw_input(
-        "select revision:\n\t0) Rev.00\n\t1) Rev.01\n\t2) Rev.02 and above.\n(press any key to cancel):\n>"
+        "\nselect revision:\n\t0) REVISION.00\n\t1) REVISION.01 and above.\n(Press any key to cancel)\n>"
     )
-    return {"0": "00", "1": "01", "2": "testing"}.get(revision)
+    return {"0": "00", "1": "01"}.get(revision)
 
 
 def confirmation(func):
@@ -112,4 +123,4 @@ def confirmation(func):
 
 
 if __name__ == "__main__":
-    confirmation(remove_symbols)
+    confirmation(revision)
