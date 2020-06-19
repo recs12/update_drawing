@@ -1,14 +1,20 @@
-""" Delete graphic components ID rev and Bloc revision from Drafts.
+# -*- coding: utf-8 -*-
+
+""" Check the revision of the document draft then either
+    delete graphic blocks components <ID rev> & <Bloc revision>
+    or add <ID rev> & <Bloc revision> if revision is above 00.
 """
+
 import clr
 
 clr.AddReference("Interop.SolidEdge")
+clr.AddReference("System")
 clr.AddReference("System.Runtime.InteropServices")
 
-import System.Runtime.InteropServices as SRI
-import SolidEdgeDraft as se_draft
-
 import sys
+import System
+import System.Runtime.InteropServices as SRI
+from System import Console
 
 blocks_to_delete = [
     "ID rev",
@@ -26,28 +32,39 @@ def revision():
         print("Maintainer: Rechdi, Slimane")
         print("Last update: 2020-04-23")
         print("version solidedge: %s" % session.Value)
-        assert session.Value in ["Solid Edge ST7", "Solid Edge 2019"], "Unvalid version of solidedge"
+        assert session.Value in [
+            "Solid Edge ST7",
+            "Solid Edge 2019",
+        ], "Unvalid version of solidedge"
         draft = session.ActiveDocument
         print("part: %s\n" % draft.Name)
         assert draft.Name.lower().endswith(".dft"), (
             "This macro only works on .psm not %s" % draft.Name[-4:]
         )
+        # Collect info for blocks
+        # current_revision = get_document_revision(draft)
+        current_revision = "02"
+        print("Document Revision: %s" % current_revision)
+        comment = raw_input("Add description:\>")
+        user = username()
+        print("User: %s" % user)
+        date_today = System.DateTime.Today.ToString("yyyy-MM-dd")
+        print("Date: %s" % date_today)
 
-        revision_doc = get_document_revision(draft)
-        print("Document Revision: %s" % revision_doc)
-
-        rev = prompt_revision()
-        if rev == "00":
+        if current_revision == "00":
             remove_blocks(draft)
-        elif rev == "01":
-            insert_blocks(draft)
-        elif rev == "testing":
-            revision_inspect(draft)
+        else:
+            insert_blocks(draft, current_revision, user, date_today, comment)
 
-    except AssertionError as err:
-        print(err.args)
+    except AssertionError as ae:
+        print(ae.args)
+
+    except ValueError as ve:
+        print(ve.args)
+
     except Exception as ex:
         print(ex.args)
+
     finally:
         raw_input("\nPress any key to exit...")
         sys.exit()
@@ -56,7 +73,7 @@ def revision():
 def get_document_revision(draft):
     """Revision of the draft
     """
-    return draft.Properties.Item['ProjectInformation']['Revision'].Value
+    return draft.Properties.Item["ProjectInformation"]["Revision"].Value
 
 
 def remove_blocks(draft):
@@ -77,43 +94,46 @@ def remove_blocks(draft):
         pass
 
 
-def insert_blocks(draft):
-    block_revision = "J:\\PTCR\\_Solidedge\\Draft_Symboles\\Bloc revision - ENGLISH.dft"
-    block_triangle = "J:\\PTCR\\_Solidedge\\Draft_Symboles\\ID rev.dft"
+def insert_blocks(draft, current_revision, user, date, comment):
+
+    # Material
+    block_revision = "J:\PTCR\_Solidedge\Draft_Symboles\Bloc revision - ENGLISH.dft"
+    block_triangle = "J:\PTCR\_Solidedge\Draft_Symboles\ID rev.dft"
 
     Sheet1 = draft.Sheets[1]
     Sheet1.Activate()
-    # insert a revision block
-    # insert a triangles
-    for _ in draft.Blocks:
-        print(_.Name)
     blocks = draft.Blocks
-    blocks.AddBlockByFile(block_triangle, 0.25, 0.25)
 
-    for _ in Sheet1.BlockOccurrences:
-        print(_)
-    # Sheet1.BlockOccurrences.Add(block_revision, 0.00, 0.00)
-    draft.Blocks.AddBlockByFile(block_revision)
-    # *** code here ***
+    Y = get_height(current_revision)
 
-    # access the revision block and modify the content
-    # block = Sheet1.BlockOccurrences.Item[1]
-    # for _ in block.BlockLabelOccurrences:
-    #     print(_.Name)
-    #     _.Value = "0"
+    # Triangle
+    blocks.AddBlockByFile(block_triangle)
+    Sheet1.BlockOccurrences.Add("ID rev", 0.298, Y) #TODO: set x,y as variable depending of the revsion
+    block = Sheet1.BlockOccurrences.Item(Sheet1.BlockOccurrences.Count)  # TODO: Identify the last number index
+    labels = block.BlockLabelOccurrences
+    labels[1].Value = current_revision[-1]
 
+    # Revision block
+    blocks.AddBlockByFile(block_revision)
+    Sheet1.BlockOccurrences.Add("Bloc revision - ENGLISH", 0.309499 , Y) #TODO: set x,y as variable depending of the revsion
+    block = Sheet1.BlockOccurrences.Item(Sheet1.BlockOccurrences.Count)
+    labels = block.BlockLabelOccurrences
 
+    # Split comment in two lines
+    comment1 = comment[:43]
+    comment2 = comment[43:]
 
-def prompt_revision():
-    revision = raw_input(
-        "\nselect revision:\n\t0) REVISION.00\n\t1) REVISION.01 and above.\n(Press any key to cancel)\n>"
-    )
-    return {"0": "00", "1": "01"}.get(revision)
+    # Add info to block revision
+    labels[1].Value = comment1.upper()
+    labels[2].Value = comment2.upper()
+    labels[3].Value = user.upper()
+    labels[4].Value = date
+    labels[5].Value = current_revision[-1]
 
 
 def confirmation(func):
     response = raw_input(
-        """Delete graphic components ID rev and Bloc revision,\n(Press y/[Y] to proceed.)\n>"""
+        """Delete graphic components ID rev and Bloc revision,\n(Press y/[Y] to proceed.)"""
     )
     if response.lower() not in ["y"]:
         print("Process canceled")
@@ -122,5 +142,26 @@ def confirmation(func):
         func()
 
 
+def raw_input(message):
+    Console.WriteLine(message)
+    return Console.ReadLine()
+
+
+def username():
+    return System.Environment.UserName
+
+def get_height(current_revision):
+    revision = int(current_revision[-1])    # integer of revision e.g 0,1,2,...
+    HEIGHT = 0.0065                         # height of revision block
+    if revision == 1:
+        return 0.0655828
+    if revision > 1:
+        return 0.0655828 + ((revision-1) * HEIGHT)
+    else:
+        raise ValueError
+
 if __name__ == "__main__":
     confirmation(revision)
+
+
+# TODO: remove the switch case - full auto
