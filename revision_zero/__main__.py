@@ -42,8 +42,8 @@ def revision():
             "This macro only works on .psm not %s" % draft.Name[-4:]
         )
         # Collect info for blocks
-        # current_revision = get_document_revision(draft)
-        current_revision = "02"
+        current_revision = get_document_revision(draft)
+        # current_revision = "02"
         print("Document Revision: %s" % current_revision)
         comment = raw_input("Add description:\>")
         user = username()
@@ -108,14 +108,14 @@ def insert_blocks(draft, current_revision, user, date, comment):
 
     # Triangle
     blocks.AddBlockByFile(block_triangle)
-    Sheet1.BlockOccurrences.Add("ID rev", 0.298, Y) #TODO: set x,y as variable depending of the revsion
-    block = Sheet1.BlockOccurrences.Item(Sheet1.BlockOccurrences.Count)  # TODO: Identify the last number index
+    Sheet1.BlockOccurrences.Add("ID rev", 0.298, Y)
+    block = Sheet1.BlockOccurrences.Item(Sheet1.BlockOccurrences.Count)
     labels = block.BlockLabelOccurrences
     labels[1].Value = current_revision[-1]
 
     # Revision block
     blocks.AddBlockByFile(block_revision)
-    Sheet1.BlockOccurrences.Add("Bloc revision - ENGLISH", 0.309499 , Y) #TODO: set x,y as variable depending of the revsion
+    Sheet1.BlockOccurrences.Add("Bloc revision - ENGLISH", 0.309499 , Y)
     block = Sheet1.BlockOccurrences.Item(Sheet1.BlockOccurrences.Count)
     labels = block.BlockLabelOccurrences
 
@@ -164,4 +164,3 @@ if __name__ == "__main__":
     confirmation(revision)
 
 
-# TODO: remove the switch case - full auto
