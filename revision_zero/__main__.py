@@ -27,34 +27,29 @@ blocks_to_delete = [
 
 def revision():
     try:
-        session = SRI.Marshal.GetActiveObject("SolidEdge.Application")
+        application = SRI.Marshal.GetActiveObject("SolidEdge.Application")
         print("Author: recs@premiertech.com")
         print("Maintainer: Rechdi, Slimane")
         print("Last update: 2020-04-23")
-        print("version solidedge: %s" % session.Value)
-        assert session.Value in [
+        print("version solidedge: %s" % application.Value)
+        assert application.Value in [
             "Solid Edge ST7",
             "Solid Edge 2019",
         ], "Unvalid version of solidedge"
-        draft = session.ActiveDocument
+        draft = application.ActiveDocument
         print("part: %s\n" % draft.Name)
-        assert draft.Name.lower().endswith(".dft"), (
-            "This macro only works on .psm not %s" % draft.Name[-4:]
-        )
+        assert draft.Type == 2 , ("This macro only works on draft")
+
         # Collect info for blocks
         current_revision = get_document_revision(draft)
-        # current_revision = "02"
-        print("Document Revision: %s" % current_revision)
-        comment = raw_input("Add description:\>")
+        print(current_revision)
         user = username()
-        print("User: %s" % user)
-        date_today = System.DateTime.Today.ToString("yyyy-MM-dd")
-        print("Date: %s" % date_today)
+        print(user)
 
-        if current_revision == "00":
+        if not current_revision:
             remove_blocks(draft)
         else:
-            insert_blocks(draft, current_revision, user, date_today, comment)
+            insert_blocks(draft, current_revision, user)
 
     except AssertionError as ae:
         print(ae.args)
@@ -73,7 +68,8 @@ def revision():
 def get_document_revision(draft):
     """Revision of the draft
     """
-    return draft.Properties.Item["ProjectInformation"]["Revision"].Value
+    rev = draft.Properties.Item["ProjectInformation"]["Revision"].Value
+    return int(rev)
 
 
 def remove_blocks(draft):
@@ -94,7 +90,7 @@ def remove_blocks(draft):
         pass
 
 
-def insert_blocks(draft, current_revision, user, date, comment):
+def insert_blocks(draft, current_revision, user):
 
     # Material
     block_revision = "J:\PTCR\_Solidedge\Draft_Symboles\Bloc revision - ENGLISH.dft"
@@ -109,16 +105,20 @@ def insert_blocks(draft, current_revision, user, date, comment):
     # Triangle
     blocks.AddBlockByFile(block_triangle)
     Sheet1.BlockOccurrences.Add("ID rev", 0.298, Y)
-    block = Sheet1.BlockOccurrences.Item(Sheet1.BlockOccurrences.Count)
+    count = Sheet1.BlockOccurrences.Count
+    block = Sheet1.BlockOccurrences.Item(count)
     labels = block.BlockLabelOccurrences
-    labels[1].Value = current_revision[-1]
+    labels[1].Value = current_revision
 
     # Revision block
     blocks.AddBlockByFile(block_revision)
-    Sheet1.BlockOccurrences.Add("Bloc revision - ENGLISH", 0.309499 , Y)
-    block = Sheet1.BlockOccurrences.Item(Sheet1.BlockOccurrences.Count)
+    Sheet1.BlockOccurrences.Add("Bloc revision - ENGLISH", 0.309499, Y)
+    count = Sheet1.BlockOccurrences.Count
+    block = Sheet1.BlockOccurrences.Item(count)
     labels = block.BlockLabelOccurrences
 
+    date_today = System.DateTime.Today.ToString("yyyy-MM-dd")
+    comment = raw_input("Add description:\>")
     # Split comment in two lines
     comment1 = comment[:43]
     comment2 = comment[43:]
@@ -127,8 +127,8 @@ def insert_blocks(draft, current_revision, user, date, comment):
     labels[1].Value = comment1.upper()
     labels[2].Value = comment2.upper()
     labels[3].Value = user.upper()
-    labels[4].Value = date
-    labels[5].Value = current_revision[-1]
+    labels[4].Value = date_today
+    labels[5].Value = current_revision
 
 
 def confirmation(func):
@@ -150,17 +150,17 @@ def raw_input(message):
 def username():
     return System.Environment.UserName
 
+
 def get_height(current_revision):
-    revision = int(current_revision[-1])    # integer of revision e.g 0,1,2,...
-    HEIGHT = 0.0065                         # height of revision block
+    revision = current_revision  # integer of revision e.g 0,1,2,...
+    HEIGHT = 0.0065  # height of revision block
     if revision == 1:
         return 0.0655828
     if revision > 1:
-        return 0.0655828 + ((revision-1) * HEIGHT)
+        return 0.0655828 + ((revision - 1) * HEIGHT)
     else:
         raise ValueError
 
+
 if __name__ == "__main__":
     confirmation(revision)
-
-
