@@ -100,8 +100,8 @@ def insert_blocks(draft, current_revision, user):
 
 def confirmation(func):
     response = raw_input(
-    """Would you like to delete graphic components (ID rev & Block revision) or add a Revision Block to this draft ?
-    (Press y/[Y] to proceed.): 
+        """Would you like to delete graphic components (ID rev & Block revision) or add a Revision Block to this draft ?
+    (Press y/[Y] to proceed.):
     """)
     if response.lower() not in ["y"]:
         print("Process canceled")
