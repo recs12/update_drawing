@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
 
 """ Check the revision of the document draft then either
-    delete graphic blocks components <ID rev> & <Bloc revision>
-    or add <ID rev> & <Bloc revision> if revision is above 00.
+    - Delete graphic blocks components <ID rev> & <Bloc revision>
+    - or add <ID rev> & <Bloc revision> if revision is above 00.
 """
 
+from System import Console
+import System.Runtime.InteropServices as SRI
+import System
+import sys
 import clr
 
 clr.AddReference("Interop.SolidEdge")
 clr.AddReference("System")
 clr.AddReference("System.Runtime.InteropServices")
 
-import sys
-import System
-import System.Runtime.InteropServices as SRI
-from System import Console
 
 blocks_to_delete = [
     "ID rev",
@@ -25,44 +25,10 @@ blocks_to_delete = [
 ]
 
 
-def revision():
-    try:
-        application = SRI.Marshal.GetActiveObject("SolidEdge.Application")
-        print("Author: recs@premiertech.com")
-        print("Maintainer: Rechdi, Slimane")
-        print("Last update: 2020-04-23")
-        print("version solidedge: %s" % application.Value)
-        assert application.Value in [
-            "Solid Edge ST7",
-            "Solid Edge 2019",
-        ], "Unvalid version of solidedge"
-        draft = application.ActiveDocument
-        print("part: %s\n" % draft.Name)
-        assert draft.Type == 2 , ("This macro only works on draft")
-
-        # Collect info for blocks
-        current_revision = get_document_revision(draft)
-        print(current_revision)
-        user = username()
-        print(user)
-
-        if not current_revision:
-            remove_blocks(draft)
-        else:
-            insert_blocks(draft, current_revision, user)
-
-    except AssertionError as ae:
-        print(ae.args)
-
-    except ValueError as ve:
-        print(ve.args)
-
-    except Exception as ex:
-        print(ex.args)
-
-    finally:
-        raw_input("\nPress any key to exit...")
-        sys.exit()
+__project__ = "update_drawing"
+__author__ = "recs"
+__version__ = "0.0.1"
+__update__ = "2020-10-30"
 
 
 def get_document_revision(draft):
@@ -118,7 +84,8 @@ def insert_blocks(draft, current_revision, user):
     labels = block.BlockLabelOccurrences
 
     date_today = System.DateTime.Today.ToString("yyyy-MM-dd")
-    comment = raw_input("Add description:\>")
+    comment = "MISE A JOUR."
+
     # Split comment in two lines
     comment1 = comment[:43]
     comment2 = comment[43:]
@@ -133,8 +100,9 @@ def insert_blocks(draft, current_revision, user):
 
 def confirmation(func):
     response = raw_input(
-        """Delete graphic components ID rev and Bloc revision,\n(Press y/[Y] to proceed.)"""
-    )
+    """Would you like to delete graphic components (ID rev & Block revision) or add a Revision Block to this draft ?
+    (Press y/[Y] to proceed.): 
+    """)
     if response.lower() not in ["y"]:
         print("Process canceled")
         sys.exit()
@@ -162,5 +130,37 @@ def get_height(current_revision):
         raise ValueError
 
 
+def main():
+    try:
+        application = SRI.Marshal.GetActiveObject("SolidEdge.Application")
+        draft = application.ActiveDocument
+        print("Document name: %s\n" % draft.Name)
+        assert draft.Type == 2, ("This macro only works on draft")
+
+        # Collect info for blocks
+        current_revision = get_document_revision(draft)
+        user = username()
+
+        if not current_revision:
+            remove_blocks(draft)
+        else:
+            insert_blocks(draft, current_revision, user)
+
+    except AssertionError as ae:
+        print(ae.args)
+
+    except ValueError as ve:
+        print(ve.args)
+
+    except Exception as ex:
+        print(ex.args)
+
+    finally:
+        raw_input("\nPress any key to exit...")
+        sys.exit()
+
+
 if __name__ == "__main__":
-    confirmation(revision)
+    print("%s\n--author: %s --version: %s --last-update : %s \n" %
+          (__project__, __author__, __version__, __update__))
+    confirmation(main)

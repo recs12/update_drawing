@@ -1,9 +1,8 @@
-:: revision_zero
-ipyc.exe /main:./revision_zero/__main__.py ^
-./revision_zero/Interop.SolidEdge.dll ^
+ipyc.exe /main:__main__.py ^
+Interop.SolidEdge.dll ^
 /embed ^
-/out:revision_zero_macro_64x_0-0-0 ^
+/out:update_drawing ^
 /platform:x64 ^
 /standalone ^
 /target:exe ^
-/win32icon:triangle.ico 
+/win32icon:triangle.ico
